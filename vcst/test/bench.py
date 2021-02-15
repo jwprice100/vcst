@@ -1,6 +1,8 @@
 import os
+import sys
 from pathlib import Path
 from collections import OrderedDict
+from importlib.machinery import SourceFileLoader
 
 from cocotb.decorators import test as Test
 
@@ -45,7 +47,7 @@ class CocoTestBench(TestBench):
         #Iterate every value in the module looking for cocotb tests
         for obj in vars(mod).values():
             if isinstance(obj, Test):
-                tests.append(CocoTest(obj.__name__, cocotb_module))
+                tests.append(CocoTest(obj.__name__, self.design_unit.is_entity, cocotb_module))
 
         default_config = Configuration(DEFAULT_NAME, self.design_unit)                  
         self._test_cases = [
@@ -76,8 +78,9 @@ class CocoTest(object):
     TODO: Describe
     """
 
-    def __init__(self, name, cocotb_module):
+    def __init__(self, name, vhdl, cocotb_module):
         self._name = name
+        self._vhdl = vhdl
         self._cocotb_module = cocotb_module
         self._attributes = []
 
@@ -134,13 +137,22 @@ class CocoTestConfigurationVisitor(TestConfigurationVisitor):
 
 
 
-def import_mod(name):
-    mod = __import__(name)
-    
-    components = name.split('.')
+def import_mod(module_path):
+    old_dir = os.getcwd()
+    old_path = sys.path
+    mod_dir, mod_name = os.path.split(module_path)
+
+    if mod_dir != "":
+        os.chdir(mod_dir)
+        sys.path.append(os.getcwd())
+
+    mod = __import__(mod_name)
+    components = mod_name.split('.')
     for comp in components[1:]:
         mod = getattr(mod, comp)
-    
+
+    os.chdir(old_dir)    
+    sys.path = old_path
     return mod
 
 
