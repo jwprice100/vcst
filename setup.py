@@ -5,5 +5,6 @@ setup(name='vcst',
       description="VUnit & cocotb smashed Together",
       author="James Price",
       author_email="jpwice100@gmail.com",
-      packages=find_packages()
+      packages=find_packages(),
+      install_requires=["vunit-hdl==4.4.0", "cocotb==1.4.0"]
      )
