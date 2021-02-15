@@ -6,6 +6,7 @@ import cocotb
 
 from vunit.test.report import PASSED, SKIPPED, FAILED
 from vunit.test.suites import IndependentSimTestCase, TestRun
+from multiprocessing import Process, Value
 
 
 class IndependentCocoSimTestCase(IndependentSimTestCase):
@@ -41,8 +42,16 @@ class CocoTestRun(TestRun):
         self._cocotb_module = cocotb_module
         self._vhdl = vhdl
 
-    def set_env_vars(self, output_path, mod_name):
+    def set_env(self, output_path):
+        """Sets the environment variables for cocotb."""
         test_case_str = ",".join(self._test_cases)
+        mod_dir, mod_name = os.path.split(self._cocotb_module)
+
+        if "PYTHONPATH" not in os.environ:
+            os.environ["PYTHONPATH"] = mod_dir
+        else:
+            os.environ["PYTHONPATH"] = environ["PYTHONPATH"] + f"{os.pathsep}{mod_dir}"
+
         os.environ["COCOTB_RESULTS_FILE"] = get_result_file_name(output_path)
         os.environ["MODULE"] = mod_name
         os.environ["TESTCASE"] = test_case_str
@@ -55,7 +64,7 @@ class CocoTestRun(TestRun):
         """
 
         #TODO: Add support for other simulators
-        ghdl_cocotb_lib = get_cocotb_libs_path()/ 'libcocotbvpi_ghdl.so'        
+        ghdl_cocotb_lib = get_cocotb_libs_path() / 'libcocotbvpi_ghdl.so'        
         append_sim_options(self._config, "ghdl.sim_flags", [f"--vpi={ghdl_cocotb_lib}"])
 
         results = {}
@@ -85,16 +94,17 @@ class CocoTestRun(TestRun):
 
     def _simulate(self, output_path):
         #Don't assume the module is in the current working directory. Get
-        #the module's path, chdir there, run the sim then change back.
-        mod_dir, mod_name = os.path.split(self._cocotb_module)
-        old_cwd = os.getcwd()
-        os.chdir(mod_dir)
-        self.set_env_vars(output_path, mod_name)
-        sim_result = self._simulator_if.simulate(output_path=output_path, test_suite_name=self._test_suite_name, config=self._config, elaborate_only=self._elaborate_only)
-        os.chdir(old_cwd)
+        #the module's path, and set the pythonpath environment variable
+        #
+        sim_result = Value('b', False)
+        simulate_proc = Process(target=simulate_helper, args=(self, output_path, sim_result))
+        simulate_proc.start()
+        simulate_proc.join()
+
         return sim_result
 
     def _read_test_results(self, file_name):
+        print("Reading results....")
         results = {}
         for name in self._test_cases:
             results[name] = FAILED
@@ -122,6 +132,14 @@ class CocoTestRun(TestRun):
 
         return results
 
+def simulate_helper(coco_test_run, output_path, sim_result):
+    """
+       Isolates simulation to a separate process to avoid issues with sharing environment variables
+       across threads.
+    """
+    coco_test_run.set_env(output_path)
+    sim_result.value = coco_test_run._simulator_if.simulate(output_path=output_path, test_suite_name=coco_test_run._test_suite_name, config=coco_test_run._config, elaborate_only=coco_test_run._elaborate_only)        
+    
 def append_sim_options(config, name, value):
     sim_flags  = config.sim_options.get(name, [])
     sim_flags  = sim_flags + value
