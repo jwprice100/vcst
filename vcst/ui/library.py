@@ -1,8 +1,10 @@
 import logging
 from vunit.ui.library import Library
 from ..test.bench import CocoTestBench
+from ..mod_utils import import_mod
 
 LOGGER = logging.getLogger(__name__)
+
 
 class VCSTLibrary(Library):
     
@@ -11,8 +13,7 @@ class VCSTLibrary(Library):
         """
         test_bench = CocoTestBench(design_unit, cocotb_module, database=None)
         self._test_bench_list._add_test_bench(test_bench)
-        #return test_bench
-
+        return self.test_bench(design_unit.name)
 
     def entity(self, name, test_bench=True):
         """
@@ -43,3 +44,4 @@ class VCSTLibrary(Library):
 
         return library.modules[name]
 
+        

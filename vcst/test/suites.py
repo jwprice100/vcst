@@ -35,7 +35,6 @@ class IndependentCocoSimTestCase(IndependentSimTestCase):
             test_cases=[test.name],
         )
 
-
 class CocoTestRun(TestRun):    
     def __init__(self, vhdl, simulator_if, config, elaborate_only, cocotb_module, test_suite_name, test_cases):        
         TestRun.__init__(self, simulator_if, config, elaborate_only, test_suite_name, test_cases)    

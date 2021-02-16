@@ -10,6 +10,7 @@ from vunit.test.bench import TestBench, TestConfigurationVisitor
 from vunit.configuration import ConfigurationVisitor, Configuration, DEFAULT_NAME
 
 from .suites import IndependentCocoSimTestCase
+from ..mod_utils import import_mod
 
 class CocoTestBench(TestBench):
     def __init__(self, design_unit, cocotb_module, database=None):
@@ -135,24 +136,5 @@ class CocoTestConfigurationVisitor(TestConfigurationVisitor):
                 )
             )        
 
-
-
-def import_mod(module_path):
-    old_dir = os.getcwd()
-    old_path = sys.path
-    mod_dir, mod_name = os.path.split(module_path)
-
-    if mod_dir != "":
-        os.chdir(mod_dir)
-        sys.path.append(os.getcwd())
-
-    mod = __import__(mod_name)
-    components = mod_name.split('.')
-    for comp in components[1:]:
-        mod = getattr(mod, comp)
-
-    os.chdir(old_dir)    
-    sys.path = old_path
-    return mod
 
 

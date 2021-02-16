@@ -13,8 +13,8 @@ from vunit.test.bench_list import TestBenchList
 from vunit.builtins import Builtins
 
 from .library import VCSTLibrary
-
 from ..project import VCSTProject
+from ..mod_utils import import_mod
 
 class VCST(VUnit):
     def __init__(
@@ -85,3 +85,48 @@ class VCST(VUnit):
         if not self._project.has_library(library_name):
             raise KeyError(library_name)
         return VCSTLibrary(library_name, self, self._project, self._test_bench_list)
+
+
+    def add_cocotb_testbench(self, cocotb_module):        
+        """Adds a cocotb module to a library based on variables defined in the cocotb module."""
+        top_level = None
+        top_level_type = None
+        top_level_library = None
+
+        mod = import_mod(cocotb_module)
+        if hasattr(mod, "top_level"):
+            top_level = getattr(mod, "top_level")
+        else:
+            raise RunTimeError(f"top_level not defined in cocotb module {cocotb_module}")
+
+        if hasattr(mod, "top_level_type"):
+            top_level_type = getattr(mod, "top_level_type")
+        else:
+            raise RunTimeError(f"top_level not defined in cocotb module {cocotb_module}")
+
+        if hasattr(mod, "top_level_library"):
+            top_level_library = getattr(mod, "top_level_library")
+        else:
+            raise RunTimeError(f"top_level_library not defined in cocotb module {cocotb_module}")            
+
+        if not isinstance(top_level, str):
+            raise RunTimeError(f"top_level defined in cocotb module should be a string {cocotb_module}")
+
+        if not isinstance(top_level_type, str):
+            raise RunTimeError(f"top_level_type defined in cocotb module should be a string {cocotb_module}")
+
+        if not isinstance(top_level_library, str):
+            raise RunTimeError(f"top_level_library defined in cocotb module should be a string {cocotb_module}")
+
+        if top_level_type != "entity" or not top_level_type != "module":
+            raise RunTimeError(f"Invalid top level type {top_level_type} in cocotb module {cocotb_module} specified. Please specify either entity or module.")
+        
+        library = self.library(top_level_library)
+        top_level_design_unit = None
+        
+        if top_level_type == "entity":
+            top_level_design_unit = library.entity(top_level, test_bench=False)
+        else:
+            top_level_design_unit = library.modlue(top_level, test_bench=False)
+
+        return library.add_cocotb_testbench(top_level_design_unit, cocotb_module)
