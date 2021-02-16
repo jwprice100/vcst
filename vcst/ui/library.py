@@ -1,7 +1,7 @@
 import logging
 from vunit.ui.library import Library
 from ..test.bench import CocoTestBench
-from ..mod_utils import import_mod
+from ..utils.mod_utils import import_mod
 
 LOGGER = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ from vunit.test.bench import TestBench, TestConfigurationVisitor
 from vunit.configuration import ConfigurationVisitor, Configuration, DEFAULT_NAME
 
 from .suites import IndependentCocoSimTestCase
-from ..mod_utils import import_mod
+from ..utils.mod_utils import import_mod
 
 class CocoTestBench(TestBench):
     def __init__(self, design_unit, cocotb_module, database=None):

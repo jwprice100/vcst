@@ -14,7 +14,7 @@ from vunit.builtins import Builtins
 
 from .library import VCSTLibrary
 from ..project import VCSTProject
-from ..mod_utils import import_mod
+from ..utils.mod_utils import import_mod
 
 class VCST(VUnit):
     def __init__(
