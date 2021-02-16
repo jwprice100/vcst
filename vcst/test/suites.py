@@ -55,17 +55,34 @@ class CocoTestRun(TestRun):
         os.environ["MODULE"] = mod_name
         os.environ["TESTCASE"] = test_case_str
 
+    def configure_simulator(self):
+        """
+            Sets simulator flags to load the VPI/VHPI/FLI interfaces as appropriate. Also sets environment
+            variables related to those interfaces.
+            TODO: Support more simulators.
+        """
+        if self._simulator_if.name == "ghdl":
+            ghdl_cocotb_lib = get_cocotb_libs_path() / 'libcocotbvpi_ghdl.so'        
+            append_sim_options(self._config, "ghdl.sim_flags", [f"--vpi={ghdl_cocotb_lib}"])
+
+        if self._simulator_if.name == "rivierapro":
+            riviera_cocotb_vhpi_lib = get_cocotb_libs_path() / 'libcocotbvhpi_ghdl.so'        
+            riviera_cocotb_vpi_lib = get_cocotb_libs_path() / 'libcocotbvpi_ghdl.so'        
+            
+            if self._vhdl:
+                append_sim_options(self._config, "rivierapro.sim_flags", [f"--loadvhpi={riviera_cocotb_vhpi_lib}"])
+                os.env["GPI_EXTRA"] = "cocotbvpi_aldec:cocotbvpi_entry_point"
+            else:
+                append_sim_options(self._config, "rivierapro.sim_flags", [f"--pli={riviera_cocotb_vpi_lib}"])
+                self.env["GPI_EXTRA"] = "cocotbvhpi_aldec:cocotbvhpi_entry_point"
+
+
     def run(self, output_path, read_output):
         """
         Run selected test cases within the test suite
 
         Returns a dictionary of test results
         """
-
-        #TODO: Add support for other simulators
-        ghdl_cocotb_lib = get_cocotb_libs_path() / 'libcocotbvpi_ghdl.so'        
-        append_sim_options(self._config, "ghdl.sim_flags", [f"--vpi={ghdl_cocotb_lib}"])
-
         results = {}
         for name in self._test_cases:
             results[name] = FAILED
@@ -137,6 +154,7 @@ def simulate_helper(coco_test_run, output_path, sim_result):
        across threads.
     """
     coco_test_run.set_env(output_path)
+    coco_test_run.configure_simulator()
     sim_result.value = coco_test_run._simulator_if.simulate(output_path=output_path, test_suite_name=coco_test_run._test_suite_name, config=coco_test_run._config, elaborate_only=coco_test_run._elaborate_only)        
     
 def append_sim_options(config, name, value):
