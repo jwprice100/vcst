@@ -132,4 +132,5 @@ dmypy.json
 *.sublime*
 
 #Filter out all vunit outputs from all tests
+vunit_out/*
 tests/**/vunit_out/*
