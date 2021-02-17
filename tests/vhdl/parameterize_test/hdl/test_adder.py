@@ -28,7 +28,7 @@ parameterize_test(sum_values, "negative_values", [(-1, 10), (-111, -222), (-1111
 parameterize_test(sum_values, "positive_and_negative_value", [(123, -456), (789, -12), (345, -678)])
 
 ########################
-set_top_level("adder", "entity", "lib")
+set_top_level("ADDER", "entity", "lib")
 
 
 

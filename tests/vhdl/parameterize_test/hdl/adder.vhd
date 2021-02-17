@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity adder is
+entity ADDER is
 generic (
     ADDER_WIDTH    : in positive
 );
@@ -12,9 +12,9 @@ port (
     input_b         : in signed(ADDER_WIDTH-1 downto 0);
     sum             : out signed(ADDER_WIDTH downto 0)
 );
-end entity adder;
+end entity ADDER;
 
-architecture rtl of adder is
+architecture rtl of ADDER is
 begin
     
     adder_proc: process(clock)
