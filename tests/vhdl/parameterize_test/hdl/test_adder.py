@@ -1,8 +1,10 @@
 import cocotb
-from vcst.utils import parameterize_test
+from vcst.utils import parameterize_test, set_top_level
 from cocotb.triggers import RisingEdge, Timer
 from cocotb.clock import Clock
 from cocotb.result import TestSuccess, TestFailure
+
+from vcst.utils import set_top_level
 
 @cocotb.coroutine
 async def sum_values(dut, values):
@@ -26,9 +28,7 @@ parameterize_test(sum_values, "negative_values", [(-1, 10), (-111, -222), (-1111
 parameterize_test(sum_values, "positive_and_negative_value", [(123, -456), (789, -12), (345, -678)])
 
 ########################
-top_level         = "adder"    
-top_level_type    = "entity"
-top_level_library = "lib"
+set_top_level("adder", "entity", "lib")
 
 
 

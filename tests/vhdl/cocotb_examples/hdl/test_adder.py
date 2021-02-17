@@ -6,6 +6,7 @@ from cocotb.triggers import Timer
 from adder_model import adder_model
 import random
 
+from vcst.utils import set_top_level
 
 @cocotb.test()
 async def adder_basic_test(dut):
@@ -36,3 +37,6 @@ async def adder_randomised_test(dut):
 
         await Timer(2, units='ns')
         assert dut.X.value == adder_model(A, B), f"Randomised test failed with: {dut.A.value} + {dut.B.value} = {dut.X.value}"
+
+
+set_top_level("adder", "entity", "lib")

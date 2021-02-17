@@ -1,4 +1,5 @@
 import cocotb
+from vcst.utils import set_top_level
 from cocotb.triggers import RisingEdge, Timer
 from cocotb.clock import Clock
 from cocotb.result import TestSuccess, TestFailure
@@ -68,9 +69,7 @@ async def wrap_test(dut):
     raise TestSuccess("Test passed.")
 
 ########################
-top_level         = "counter"    
-top_level_type    = "entity"
-top_level_library = "lib"
+set_top_level("counter", "entity", "lib")
 
 
 

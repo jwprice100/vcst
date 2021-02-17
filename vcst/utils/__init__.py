@@ -1,10 +1,21 @@
 import cocotb
 from .mod_utils import get_calling_module
 
+def set_top_level(top_level, top_level_type, top_level_library):
+    """
+        Used to set the top level, top level type and top level library
+        associated with a particular cocotb module.
+    """
+    mod = get_calling_module()
+    setattr(mod, "top_level", top_level)
+    setattr(mod, "top_level_type", top_level_type)
+    setattr(mod, "top_level_library", top_level_library)
+
 def parameterize_test(coroutine, test_name, *args, **kwargs):
-    """An alternative to test factory. A single coroutine with multiple arguments can be turned
-       into a test using this function. Such coroutines must accept the dut as their first 
-       arguments. 
+    """
+        An alternative to test factory. A single coroutine with multiple arguments can be turned
+        into a test using this function. Such coroutines must accept the dut as their first 
+        arguments. 
     """
     mod = get_calling_module()
     def test_maker(*args, **kwargs):

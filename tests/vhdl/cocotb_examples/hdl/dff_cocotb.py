@@ -24,9 +24,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
 import random
-
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
@@ -35,6 +33,8 @@ from cocotb.drivers import BitDriver
 from cocotb.binary import BinaryValue
 from cocotb.regression import TestFactory
 from cocotb.scoreboard import Scoreboard
+
+from vcst.utils import set_top_level
 
 #      dut
 #    ________
@@ -155,3 +155,4 @@ async def run_test(dut):
 # Register the test.
 factory = TestFactory(run_test)
 factory.generate_tests()
+set_top_level("dff", "entity", "lib")
