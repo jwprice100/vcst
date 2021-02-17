@@ -54,7 +54,7 @@ class CocoTestBench(TestBench):
 
         default_config = Configuration(DEFAULT_NAME, self.design_unit)                  
         self._test_cases = [
-            CocoTestConfigurationVisitor(test, self.design_unit, False, default_config.copy())
+            CocoTestConfigurationVisitor(test, self.design_unit, True, default_config.copy())
             for test in tests
         ]
 

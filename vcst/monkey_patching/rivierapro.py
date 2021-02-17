@@ -1,5 +1,6 @@
 #Replaces some of VUnit's simulator logic for Riviera in order to deal with environment variables.
 from pathlib import Path
+import vunit
 from vunit.sim_if.vsim_simulator_mixin import fix_path
 from vunit.sim_if.rivierapro import RivieraProInterface
 from vunit.persistent_tcl_shell import PersistentTclShell
@@ -89,8 +90,31 @@ def rivierapro_simulate(self, output_path, test_suite_name, config, elaborate_on
 
     return self._run_batch_file(str(batch_file_name), env=env)
 
+def is_iterable(obj):
+   try:
+      iterator = iter(obj)
+      return True
+   except TypeError:
+      return False
+
+def format_generic(value):
+   if not isinstance(value, str) and is_iterable(value):
+      value_str = "("
+      for item in value:
+         value_str = value_str + format_generic(item) + ","         
+      #Remove the comma at the end
+      value_str = value_str[0:len(value_str)-1] + ")"
+      print(value_str)
+      return value_str
+   else:
+       value_str = str(value)
+       if " " in value_str:
+           return f'"{value_str}"'
+       return value_str    
+
 ###############################################################
 PersistentTclShell.set_env_var = set_env_var
+vunit.sim_if.rivierapro.format_generic = format_generic
 RivieraProInterface._run_persistent = rivierapro_run_persistent
 RivieraProInterface._run_batch_file = rivierapro_run_batch_file
 RivieraProInterface.simulate = rivierapro_simulate    
