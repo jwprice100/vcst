@@ -24,6 +24,7 @@ class CocoTestBench(TestBench):
         self._test_cases = []
         self._implicit_test = None
         self.cocotb_module = cocotb_module
+        self._cocotb_module = None
 
         if design_unit.is_entity:
             design_unit.set_add_architecture_callback(self._add_architecture_callback)
@@ -43,6 +44,7 @@ class CocoTestBench(TestBench):
         Discover tests defined in a cooctb module and 
         """
         mod = import_mod(cocotb_module)
+        self._cocotb_module = mod
         tests = []
 
         #Iterate every value in the module looking for cocotb tests
