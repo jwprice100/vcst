@@ -8,6 +8,7 @@ from vunit.test.report import PASSED, SKIPPED, FAILED
 from vunit.test.suites import IndependentSimTestCase, TestRun
 from multiprocessing import Process, Value
 
+from vcst.utils.mod_utils import import_mod
 
 class IndependentCocoSimTestCase(IndependentSimTestCase):
     def __init__(self, test, config, simulator_if, elaborate_only=False):
@@ -48,16 +49,21 @@ class CocoTestRun(TestRun):
         environ = os.environ.copy()
         test_case_str = ",".join(self._test_cases)
         mod_dir, mod_name = os.path.split(self._cocotb_module)
+        mod = import_mod(self._cocotb_module)
 
         if "PYTHONPATH" not in os.environ:
             environ["PYTHONPATH"] = mod_dir
         else:
             environ["PYTHONPATH"] = environ["PYTHONPATH"] + f"{os.pathsep}{mod_dir}"
 
-        environ["COCOTB_RESULTS_FILE"] = get_result_file_name(output_path)
-        environ["TOPLEVEL"] = self._top_level
+        environ["COCOTB_RESULTS_FILE"] = get_result_file_name(output_path)        
         environ["MODULE"] = mod_name
         environ["TESTCASE"] = test_case_str
+
+        if self._simulator_if.name == "ghdl":
+            environ["TOPLEVEL"] = mod.top_level.lower()
+        else:
+            environ["TOPLEVEL"] = mod.top_level
 
         return environ
 
