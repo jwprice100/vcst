@@ -2,12 +2,13 @@
 from pathlib import Path
 from vcst import VCST
 from glob import glob
+import os
 
-
-root = Path(__file__).parent 
+root = Path(os.path.abspath(Path(__file__).parent))
 ui = VCST.from_argv()
 lib = ui.add_library("lib")
 lib.add_source_files(root / "hdl" / "*.vhd*", vhdl_standard="2008")
+lib.add_compile_option("rivierapro.vcom_flags", ["-dbg","-relax"])   
 
 #Configure the counter testbench
 tb_counter = lib.test_bench("tb_counter")

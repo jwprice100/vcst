@@ -27,6 +27,7 @@ class IndependentCocoSimTestCase(IndependentSimTestCase):
 
         self._run = CocoTestRun(
             vhdl=test._vhdl,
+            top_level=test._top_level,
             simulator_if=simulator_if,
             config=config,
             elaborate_only=elaborate_only,
@@ -36,26 +37,31 @@ class IndependentCocoSimTestCase(IndependentSimTestCase):
         )
 
 class CocoTestRun(TestRun):    
-    def __init__(self, vhdl, simulator_if, config, elaborate_only, cocotb_module, test_suite_name, test_cases):        
+    def __init__(self, vhdl, top_level, simulator_if, config, elaborate_only, cocotb_module, test_suite_name, test_cases):        
         TestRun.__init__(self, simulator_if, config, elaborate_only, test_suite_name, test_cases)    
         self._cocotb_module = cocotb_module
+        self._top_level = top_level
         self._vhdl = vhdl
 
-    def set_env(self, output_path):
-        """Sets the environment variables for cocotb."""
+    def create_environ(self, output_path):
+        """Creates a set of virtual environment variables for cocotb."""
+        environ = os.environ.copy()
         test_case_str = ",".join(self._test_cases)
         mod_dir, mod_name = os.path.split(self._cocotb_module)
 
         if "PYTHONPATH" not in os.environ:
-            os.environ["PYTHONPATH"] = mod_dir
+            environ["PYTHONPATH"] = mod_dir
         else:
-            os.environ["PYTHONPATH"] = environ["PYTHONPATH"] + f"{os.pathsep}{mod_dir}"
+            environ["PYTHONPATH"] = environ["PYTHONPATH"] + f"{os.pathsep}{mod_dir}"
 
-        os.environ["COCOTB_RESULTS_FILE"] = get_result_file_name(output_path)
-        os.environ["MODULE"] = mod_name
-        os.environ["TESTCASE"] = test_case_str
+        environ["COCOTB_RESULTS_FILE"] = get_result_file_name(output_path)
+        environ["TOPLEVEL"] = self._top_level
+        environ["MODULE"] = mod_name
+        environ["TESTCASE"] = test_case_str
 
-    def configure_simulator(self):
+        return environ
+
+    def configure_simulator(self, environ):
         """
             Sets simulator flags to load the VPI/VHPI/FLI interfaces as appropriate. Also sets environment
             variables related to those interfaces.
@@ -66,16 +72,17 @@ class CocoTestRun(TestRun):
             append_sim_options(self._config, "ghdl.sim_flags", [f"--vpi={ghdl_cocotb_lib}"])
 
         if self._simulator_if.name == "rivierapro":
-            riviera_cocotb_vhpi_lib = get_cocotb_libs_path() / 'libcocotbvhpi_ghdl.so'        
-            riviera_cocotb_vpi_lib = get_cocotb_libs_path() / 'libcocotbvpi_ghdl.so'        
+            riviera_cocotb_vhpi_lib = get_cocotb_libs_path() / 'libcocotbvhpi_aldec.so'        
+            riviera_cocotb_vpi_lib = get_cocotb_libs_path() / 'libcocotbvpi_aldec.so'        
+            
+            append_sim_options(self._config, "rivierapro.vsim_flags", ["+access", "+w", "-interceptcoutput", "-O2"])
             
             if self._vhdl:
-                append_sim_options(self._config, "rivierapro.sim_flags", [f"--loadvhpi={riviera_cocotb_vhpi_lib}"])
-                os.env["GPI_EXTRA"] = "cocotbvpi_aldec:cocotbvpi_entry_point"
+                append_sim_options(self._config, "rivierapro.vsim_flags", [f"-loadvhpi {riviera_cocotb_vhpi_lib}"])
+                environ["GPI_EXTRA"] = "cocotbvpi_aldec:cocotbvpi_entry_point"                 
             else:
-                append_sim_options(self._config, "rivierapro.sim_flags", [f"--pli={riviera_cocotb_vpi_lib}"])
-                self.env["GPI_EXTRA"] = "cocotbvhpi_aldec:cocotbvhpi_entry_point"
-
+                append_sim_options(self._config, "rivierapro.vsim_flags", [f"-pli {riviera_cocotb_vpi_lib}"])
+                environ["GPI_EXTRA"] = "cocotbvhpi_aldec:cocotbvhpi_entry_point"
 
     def run(self, output_path, read_output):
         """
@@ -109,14 +116,10 @@ class CocoTestRun(TestRun):
         return results        
 
     def _simulate(self, output_path):
-        #Don't assume the module is in the current working directory. Get
-        #the module's path, and set the pythonpath environment variable
-        #
-        sim_result = Value('b', False)
-        simulate_proc = Process(target=simulate_helper, args=(self, output_path, sim_result))
-        simulate_proc.start()
-        simulate_proc.join()
-
+        """Due to the use of environment variables, we'll create a process to work around VUnit's multithreading for now."""
+        env = self.create_environ(output_path)
+        self.configure_simulator(env)
+        sim_result = self._simulator_if.simulate(output_path=output_path, test_suite_name=self._test_suite_name, config=self._config, elaborate_only=self._elaborate_only, env=env)        
         return sim_result
 
     def _read_test_results(self, file_name):
@@ -148,15 +151,6 @@ class CocoTestRun(TestRun):
 
         return results
 
-def simulate_helper(coco_test_run, output_path, sim_result):
-    """
-       Isolates simulation to a separate process to avoid issues with sharing environment variables
-       across threads.
-    """
-    coco_test_run.set_env(output_path)
-    coco_test_run.configure_simulator()
-    sim_result.value = coco_test_run._simulator_if.simulate(output_path=output_path, test_suite_name=coco_test_run._test_suite_name, config=coco_test_run._config, elaborate_only=coco_test_run._elaborate_only)        
-    
 def append_sim_options(config, name, value):
     sim_flags  = config.sim_options.get(name, [])
     sim_flags  = sim_flags + value

@@ -1,9 +1,9 @@
-
 from pathlib import Path
 from vcst import VCST
 from glob import glob
+import os
 
-root = Path(__file__).parent 
+root = Path(os.path.abspath(Path(__file__).parent))
 ui = VCST.from_argv()
 lib = ui.add_library("lib")
 lib.add_source_files(root / "hdl" / "*.vhd*", vhdl_standard="2008")

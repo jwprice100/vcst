@@ -48,7 +48,7 @@ class CocoTestBench(TestBench):
         #Iterate every value in the module looking for cocotb tests
         for obj in vars(mod).values():
             if isinstance(obj, Test):
-                tests.append(CocoTest(obj.__name__, self.design_unit.is_entity, cocotb_module))
+                tests.append(CocoTest(obj.__name__, self.design_unit, cocotb_module))
 
         default_config = Configuration(DEFAULT_NAME, self.design_unit)                  
         self._test_cases = [
@@ -79,9 +79,10 @@ class CocoTest(object):
     TODO: Describe
     """
 
-    def __init__(self, name, vhdl, cocotb_module):
+    def __init__(self, name, design_unit, cocotb_module):
         self._name = name
-        self._vhdl = vhdl
+        self._top_level = design_unit.name
+        self._vhdl = design_unit.is_entity
         self._cocotb_module = cocotb_module
         self._attributes = []
 
