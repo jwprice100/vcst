@@ -112,8 +112,22 @@ def format_generic(value):
            return f'"{value_str}"'
        return value_str    
 
+class ReadVarOutputConsumer(object):
+    """
+    Consume output from modelsim and print with indentation
+    """
+
+    def __init__(self):
+        self.var = None
+
+    def __call__(self, line):
+        if "#VUNIT_READVAR=" in line:
+            self.var = line.split("#VUNIT_READVAR=")[-1].strip()
+            return True
+
 ###############################################################
 PersistentTclShell.set_env_var = set_env_var
+vunit.persistent_tcl_shell.ReadVarOutputConsumer = ReadVarOutputConsumer
 vunit.sim_if.rivierapro.format_generic = format_generic
 RivieraProInterface._run_persistent = rivierapro_run_persistent
 RivieraProInterface._run_batch_file = rivierapro_run_batch_file
