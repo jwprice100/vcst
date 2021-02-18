@@ -59,6 +59,7 @@ class CocoTestRun(TestRun):
         environ["COCOTB_RESULTS_FILE"] = get_result_file_name(output_path)        
         environ["MODULE"] = mod_name
         environ["TESTCASE"] = test_case_str
+        environ["COCOTB_RESOLVE_X"] = "ZEROS"
 
         if self._simulator_if.name == "ghdl":
             environ["TOPLEVEL"] = mod.top_level.lower()
