@@ -37,6 +37,10 @@ end entity dff;
 
 architecture rtl of dff is
 begin
-  -- It is also possible to add an delay of less than one clock period here.
-  q <= d when rising_edge(c);
+    flop: process(c)
+    begin
+        if rising_edge(c) then
+            q <= d;
+        end if;
+    end process;
 end architecture rtl;
