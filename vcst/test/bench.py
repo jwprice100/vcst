@@ -30,8 +30,9 @@ class CocoTestBench(TestBench):
             design_unit.set_add_architecture_callback(self._add_architecture_callback)
             if design_unit.architecture_names:
                 self._add_architecture_callback()
-        
+
         self.discover_cocotb_tests(cocotb_module)
+        self.set_attribute(".cocotb", None)
 
     def _add_architecture_callback(self):
         """
