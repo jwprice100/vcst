@@ -86,10 +86,10 @@ class CocoTestRun(TestRun):
             
             if self._vhdl:
                 append_sim_options(self._config, "rivierapro.vsim_flags", [f"-loadvhpi {riviera_cocotb_vhpi_lib}"])
-                environ["GPI_EXTRA"] = "cocotbvpi_aldec:cocotbvpi_entry_point"                 
+                #environ["GPI_EXTRA"] = get_cocotb_libs_path() / "cocotbvpi_aldec:cocotbvpi_entry_point"                 
             else:
                 append_sim_options(self._config, "rivierapro.vsim_flags", [f"-pli {riviera_cocotb_vpi_lib}"])
-                environ["GPI_EXTRA"] = "cocotbvhpi_aldec:cocotbvhpi_entry_point"
+                #environ["GPI_EXTRA"] = get_cocotb_libs_path() / "cocotbvhpi_aldec:cocotbvhpi_entry_point"
 
     def run(self, output_path, read_output):
         """
