@@ -8,12 +8,16 @@ from vunit.ostools import write_file, Process
 
 def set_env_var(self, env):
     process = self._process()
+    #process.writeline('puts "Updating Tcl script to copy environment variables into Tcl-land"')
     for var in env:
-        set_env_str = f"set ::env({var}) {env[var]}"
-        set_env_str = set_env_str.replace("\n", "\\n")
-        #print(set_env_str)
-        #print(set_env_str.find("\n") != -1)
+        # Tcl bounds using curly braces -- escape them then use a curly brace around the "value"
+        # Note: this does not handle non-printable chars
+        # Using subst call to escape: []$
+        value = env[var].replace('{', '\{').replace('}', '\}')
+        set_env_str = f"set ::env({var}) [subst -nobackslashes -nocommand -novariables {{ {value} }} ]"
         process.writeline(set_env_str)
+        #process.writeline(f'puts "{var} = ${{::env({var})}}"')
+    #process.writeline('puts "Done copying the environment variables into Tcl-land"')
 
 def rivierapro_run_batch_file(self, batch_file_name, gui=False, env=None):
     """
