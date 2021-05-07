@@ -21,7 +21,7 @@ def set_env_var(self, env):
             process.writeline(f'''puts "+++ Skipping \\"{var}\\" (to avoid ';') +++"''')
         else:
             if '\n' in value:
-                process.writeline(f'''set ::env({var}) [lines {{{value}}}]]''')
+                process.writeline(f'''set ::env({var}) [lines {{{value}}}]''')
             else:
                 process.writeline(f'''set ::env({var}) {{{value}}}''')
         #set_env_str = f"set ::env({var}) [subst -nobackslashes -nocommand -novariables {{ {value} }} ]"
