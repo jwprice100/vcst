@@ -19,11 +19,11 @@ def set_env_var(self, env):
         value = env[var].replace('{', '\\{').replace('}', '\\}')
         if ';' in value:
             process.writeline(f'''puts "+++ Skipping \\"{var}\\" (to avoid ';') +++"''')
+        elif '\n' in value:
+            process.writeline(f'''puts "+++ Skipping \\"{var}\\" (to avoid '\\n') +++"''')
+            #process.writeline(f'''set ::env({var}) [lines {{{value}}}]''')
         else:
-            if '\n' in value:
-                process.writeline(f'''set ::env({var}) [lines {{{value}}}]''')
-            else:
-                process.writeline(f'''set ::env({var}) {{{value}}}''')
+            process.writeline(f'''set ::env({var}) {{{value}}}''')
         #set_env_str = f"set ::env({var}) [subst -nobackslashes -nocommand -novariables {{ {value} }} ]"
         #process.writeline(f'''puts "{var}=[set ::env({var})]"''')
         #process.writeline('puts "------------------"')
