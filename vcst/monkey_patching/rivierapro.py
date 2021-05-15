@@ -8,17 +8,27 @@ from vunit.ostools import write_file, Process
 
 def set_env_var(self, env):
     process = self._process()
-    #process.writeline('puts "Updating Tcl script to copy environment variables into Tcl-land"')
+    process.writeline('puts "Updating Tcl script to copy environment variables into Tcl-land"')
+    # Ideas from: https://stackoverflow.com/questions/22629160/neatly-listing-values-in-multiple-lines
+    process.writeline("""proc lines {{lines}} {{ foreach item [uplevel [list subst -nobackslash -nocommand -novarialbes $lines] {{ lappend list $item }} return $list }}""")
+    #process.writeline('puts "------------------"')
     for var in env:
         # Tcl bounds using curly braces -- escape them then use a curly brace around the "value"
         # Note: this does not handle non-printable chars
         # Using subst call to escape: []$
-        value = env[var].replace('{', '\{').replace('}', '\}')
-        set_env_str = f"set ::env({var}) [subst -nobackslashes -nocommand -novariables {{ {value} }} ]"
-        process.writeline(set_env_str)
-        #process.writeline(f'puts "{var} = ${{::env({var})}}"')
+        value = env[var].replace('{', '\\{').replace('}', '\\}')
+        if ';' in value:
+            process.writeline(f'''puts "+++ Skipping \\"{var}\\" (to avoid ';') +++"''')
+        elif '\n' in value:
+            process.writeline(f'''puts "+++ Skipping \\"{var}\\" (to avoid '\\n') +++"''')
+            #process.writeline(f'''set ::env({var}) [lines {{{value}}}]''')
+        else:
+            process.writeline(f'''set ::env({var}) {{{value}}}''')
+        #set_env_str = f"set ::env({var}) [subst -nobackslashes -nocommand -novariables {{ {value} }} ]"
+        #process.writeline(f'''puts "{var}=[set ::env({var})]"''')
+        #process.writeline('puts "------------------"')
     #process.writeline('puts "Done copying the environment variables into Tcl-land"')
-
+        
 def rivierapro_run_batch_file(self, batch_file_name, gui=False, env=None):
     """
     Run a test bench in batch by invoking a new vsim process from the command line
