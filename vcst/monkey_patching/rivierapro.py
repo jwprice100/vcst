@@ -7,13 +7,32 @@ from vunit.persistent_tcl_shell import PersistentTclShell
 from vunit.ostools import write_file, Process
 
 def set_env_var(self, env):
-    process = self._process()
+    """Sets environment variables by setting them in tcl. This is accomplished by interacting with 
+       the simulator via stdin.
+    """
+    #For some reason, there are times were writes to stdin are truncated if they are to long. Back to back writes seem to work, 
+    #so chunk up those writes.
+    
+    C_MAX_CHARS = 1024
+    process = self._process()    
     for var in env:
-        set_env_str = f"set ::env({var}) {env[var]}"
-        set_env_str = set_env_str.replace("\n", "\\n")
-        #print(set_env_str)
-        #print(set_env_str.find("\n") != -1)
-        process.writeline(set_env_str)
+        var_value = env[var]
+        #Initialize a temp variable to hold the intermediate value
+        process.writeline('set vcst_env_var ""')
+
+        #Figure out how many write chunks
+        num_writes = len(var_value) // C_MAX_CHARS
+        if len(var_value) % C_MAX_CHARS != 0:
+            num_writes += 1
+        
+        #Append each chunk of the desired environment variable to the temp variable
+        for i in range(num_writes):
+            sub_str = var_value[i*C_MAX_CHARS:(i+1)*C_MAX_CHARS]
+            process.writeline(f'append vcst_env_var "{sub_str}"')
+        
+        #Then set the environment variable to the temp value
+        set_env_str = f"set ::env({var}) $vcst_env_var"
+        process.writeline(set_env_str)        
 
 def rivierapro_run_batch_file(self, batch_file_name, gui=False, env=None):
     """
