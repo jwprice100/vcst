@@ -17,9 +17,13 @@ def set_env_var(self, env):
     process = self._process()    
     for var in env:
         var_value = env[var]
+        var_value = env[var].replace('{', '\\{').replace('}', '\\}')
+        
+        if ';' or '\n' in var_value:
+            continue
+        
         #Initialize a temp variable to hold the intermediate value
         process.writeline('set vcst_env_var ""')
-
         #Figure out how many write chunks
         num_writes = len(var_value) // C_MAX_CHARS
         if len(var_value) % C_MAX_CHARS != 0:

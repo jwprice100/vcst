@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='vcst',
-      version="0.0.4",
+      version="0.0.6",
       description="VUnit & cocotb smashed Together",
       author="James Price",
       author_email="jpwice100@gmail.com",
