@@ -6,7 +6,7 @@ from importlib.machinery import SourceFileLoader
 
 from cocotb.decorators import test as Test
 
-from vunit.test.bench import TestBench, TestConfigurationVisitor
+from vunit.test.bench import TestBench, TestConfigurationVisitor, FileLocation
 from vunit.configuration import ConfigurationVisitor, Configuration, DEFAULT_NAME
 
 from .suites import IndependentCocoSimTestCase
@@ -86,6 +86,7 @@ class CocoTest(object):
         self._name = name
         self._top_level = design_unit.name
         self._vhdl = design_unit.is_entity
+        self._location = FileLocation(design_unit.file_name, None, None, None) #offset, length, lineno set to None
         self._cocotb_module = cocotb_module
         self._attributes = []
 
@@ -95,7 +96,7 @@ class CocoTest(object):
 
     @property
     def location(self):
-        raise Exception("VCST mixing failure.")
+        return self._location
 
     @property
     def is_explicit(self):
