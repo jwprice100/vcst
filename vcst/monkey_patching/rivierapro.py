@@ -19,7 +19,7 @@ def set_env_var(self, env):
         var_value = env[var]
         var_value = env[var].replace('{', '\\{').replace('}', '\\}')
         
-        if ';' or '\n' in var_value:
+        if (';' in var_value) or ('\n' in var_value):
             continue
         
         #Initialize a temp variable to hold the intermediate value
@@ -36,7 +36,7 @@ def set_env_var(self, env):
         
         #Then set the environment variable to the temp value
         set_env_str = f"set ::env({var}) $vcst_env_var"
-        process.writeline(set_env_str)        
+        process.writeline(set_env_str)
 
 def rivierapro_run_batch_file(self, batch_file_name, gui=False, env=None):
     """
