@@ -141,7 +141,7 @@ class CocoTestRun(TestRun):
         tree = ET.parse(file_name)
         root = tree.getroot()
 
-        test_suites = root.getchildren()[0]
+        test_suites = list(root)[0]
         results_tests = []    
         for result in test_suites:
             if result.tag == "testcase":            
