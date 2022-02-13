@@ -1,6 +1,7 @@
 from typing import Optional, Set, Union
 from pathlib import Path
 from fnmatch import fnmatch
+from types import ModuleType
 
 from vunit import VUnit 
 from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
@@ -87,25 +88,27 @@ class VCST(VUnit):
         return VCSTLibrary(library_name, self, self._project, self._test_bench_list)
 
 
-    def add_cocotb_testbench(self, cocotb_module):        
+    def add_cocotb_testbench(self, cocotb_module_location, cocotb_module=None):        
         """Adds a cocotb module to a library based on variables defined in the cocotb module."""
         top_level = None
         top_level_type = None
         top_level_library = None
 
-        mod = import_mod(cocotb_module)
-        if hasattr(mod, "top_level"):
-            top_level = getattr(mod, "top_level")
+        if cocotb_module is None:
+           cocotb_module = import_mod(cocotb_module_location)
+
+        if hasattr(cocotb_module, "top_level"):
+            top_level = getattr(cocotb_module, "top_level")
         else:
             raise RunTimeError(f"top_level not defined in cocotb module {cocotb_module}")
 
-        if hasattr(mod, "top_level_type"):
-            top_level_type = getattr(mod, "top_level_type")
+        if hasattr(cocotb_module, "top_level_type"):
+            top_level_type = getattr(cocotb_module, "top_level_type")
         else:
             raise RunTimeError(f"top_level not defined in cocotb module {cocotb_module}")
 
-        if hasattr(mod, "top_level_library"):
-            top_level_library = getattr(mod, "top_level_library")
+        if hasattr(cocotb_module, "top_level_library"):
+            top_level_library = getattr(cocotb_module, "top_level_library")
         else:
             raise RunTimeError(f"top_level_library not defined in cocotb module {cocotb_module}")            
 
@@ -129,4 +132,4 @@ class VCST(VUnit):
         else:
             top_level_design_unit = library.modlue(top_level, test_bench=False)
 
-        return library.add_cocotb_testbench(top_level_design_unit, cocotb_module)
+        return library.add_cocotb_testbench(top_level_design_unit, cocotb_module, cocotb_module_location)

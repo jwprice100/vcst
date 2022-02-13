@@ -32,14 +32,14 @@ class IndependentCocoSimTestCase(IndependentSimTestCase):
             simulator_if=simulator_if,
             config=config,
             elaborate_only=elaborate_only,
-            cocotb_module=test._cocotb_module,
+            cocotb_module=test._cocotb_module_location,
             test_suite_name=self._name,
             test_cases=[test.name],
         )
 
 class CocoTestRun(TestRun):    
     def __init__(self, vhdl, top_level, simulator_if, config, elaborate_only, cocotb_module, test_suite_name, test_cases):        
-        TestRun.__init__(self, simulator_if, config, elaborate_only, test_suite_name, test_cases)    
+        TestRun.__init__(self, simulator_if, config, elaborate_only, test_suite_name, test_cases)            
         self._cocotb_module = cocotb_module
         self._top_level = top_level
         self._vhdl = vhdl

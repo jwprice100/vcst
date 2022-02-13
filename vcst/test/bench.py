@@ -1,5 +1,7 @@
 import os
 import sys
+import types
+
 from pathlib import Path
 from collections import OrderedDict
 from importlib.machinery import SourceFileLoader
@@ -13,7 +15,7 @@ from .suites import IndependentCocoSimTestCase
 from ..utils.mod_utils import import_mod
 
 class CocoTestBench(TestBench):
-    def __init__(self, design_unit, cocotb_module, database=None):
+    def __init__(self, design_unit, cocotb_module, cocotb_module_location, database=None):
         
         ConfigurationVisitor.__init__(self)
         self.design_unit = design_unit
@@ -23,7 +25,7 @@ class CocoTestBench(TestBench):
         self._configs = {}
         self._test_cases = []
         self._implicit_test = None
-        self.cocotb_module = cocotb_module
+        #self.cocotb_module = cocotb_module
         self._cocotb_module = None
 
         if design_unit.is_entity:
@@ -31,7 +33,7 @@ class CocoTestBench(TestBench):
             if design_unit.architecture_names:
                 self._add_architecture_callback()
 
-        self.discover_cocotb_tests(cocotb_module)
+        self.discover_cocotb_tests(cocotb_module, cocotb_module_location)
         self.set_attribute(".cocotb", None)
 
     def _add_architecture_callback(self):
@@ -40,18 +42,16 @@ class CocoTestBench(TestBench):
         """
         self._check_architectures(self.design_unit)
         
-    def discover_cocotb_tests(self, cocotb_module):
+    def discover_cocotb_tests(self, cocotb_module, cocotb_module_location):
         """
-        Discover tests defined in a cooctb module and 
+        Discover tests defined in a cocotb module and 
         """
-        mod = import_mod(cocotb_module)
-        self._cocotb_module = mod
+        self._cocotb_module = cocotb_module        
         tests = []
-
         #Iterate every value in the module looking for cocotb tests
-        for obj in vars(mod).values():
+        for obj in vars(cocotb_module).values():
             if isinstance(obj, Test):
-                tests.append(CocoTest(obj.__name__, self.design_unit, cocotb_module))
+                tests.append(CocoTest(obj.__name__, self.design_unit, cocotb_module_location))
 
         default_config = Configuration(DEFAULT_NAME, self.design_unit)                  
         self._test_cases = [
@@ -82,12 +82,12 @@ class CocoTest(object):
     TODO: Describe
     """
 
-    def __init__(self, name, design_unit, cocotb_module):
+    def __init__(self, name, design_unit, cocotb_module_location):
         self._name = name
         self._top_level = design_unit.name
         self._vhdl = design_unit.is_entity
         self._location = FileLocation(design_unit.file_name, None, None, None) #offset, length, lineno set to None
-        self._cocotb_module = cocotb_module
+        self._cocotb_module_location = cocotb_module_location
         self._attributes = []
 
     @property
