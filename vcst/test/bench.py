@@ -25,7 +25,6 @@ class CocoTestBench(TestBench):
         self._configs = {}
         self._test_cases = []
         self._implicit_test = None
-        #self.cocotb_module = cocotb_module
         self._cocotb_module = None
 
         if design_unit.is_entity:
@@ -49,9 +48,10 @@ class CocoTestBench(TestBench):
         self._cocotb_module = cocotb_module        
         tests = []
         #Iterate every value in the module looking for cocotb tests
-        for obj in vars(cocotb_module).values():
+        for obj_name in dir(cocotb_module):
+            obj = getattr(cocotb_module, obj_name)
             if isinstance(obj, Test):
-                tests.append(CocoTest(obj.__name__, self.design_unit, cocotb_module_location))
+                tests.append(CocoTest(obj.__name__, self.design_unit, cocotb_module, cocotb_module_location))
 
         default_config = Configuration(DEFAULT_NAME, self.design_unit)                  
         self._test_cases = [
@@ -82,11 +82,12 @@ class CocoTest(object):
     TODO: Describe
     """
 
-    def __init__(self, name, design_unit, cocotb_module_location):
+    def __init__(self, name, design_unit, cocotb_module, cocotb_module_location):
         self._name = name
-        self._top_level = design_unit.name
+        self._top_level = cocotb_module.top_level
         self._vhdl = design_unit.is_entity
         self._location = FileLocation(design_unit.file_name, None, None, None) #offset, length, lineno set to None
+        self._cocotb_module = cocotb_module
         self._cocotb_module_location = cocotb_module_location
         self._attributes = []
 

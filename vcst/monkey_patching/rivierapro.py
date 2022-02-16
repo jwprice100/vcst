@@ -16,13 +16,10 @@ def set_env_var(self, env):
     C_MAX_CHARS = 1024
     process = self._process()    
     for var in env:
-        
-        print(var)
-        
         var_value = env[var]
         var_value = env[var].replace('{', '\\{').replace('}', '\\}')
         
-        if ';' or '\n' in var_value:
+        if ';' in var_value or '\n' in var_value:
             continue
         
         #Initialize a temp variable to hold the intermediate value

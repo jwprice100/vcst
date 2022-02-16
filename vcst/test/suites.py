@@ -32,15 +32,16 @@ class IndependentCocoSimTestCase(IndependentSimTestCase):
             simulator_if=simulator_if,
             config=config,
             elaborate_only=elaborate_only,
-            cocotb_module=test._cocotb_module_location,
+            cocotb_module = test._cocotb_module,
+            cocotb_module_location=test._cocotb_module_location,
             test_suite_name=self._name,
             test_cases=[test.name],
         )
 
 class CocoTestRun(TestRun):    
-    def __init__(self, vhdl, top_level, simulator_if, config, elaborate_only, cocotb_module, test_suite_name, test_cases):        
+    def __init__(self, vhdl, top_level, simulator_if, config, elaborate_only, cocotb_module, cocotb_module_location, test_suite_name, test_cases):        
         TestRun.__init__(self, simulator_if, config, elaborate_only, test_suite_name, test_cases)            
-        self._cocotb_module = cocotb_module
+        self._cocotb_module_location = cocotb_module_location
         self._top_level = top_level
         self._vhdl = vhdl
 
@@ -48,9 +49,8 @@ class CocoTestRun(TestRun):
         """Creates a set of virtual environment variables for cocotb."""
         environ = os.environ.copy()
         test_case_str = ",".join(self._test_cases)
-        mod_dir, mod_name = os.path.split(self._cocotb_module)
-        mod = import_mod(self._cocotb_module)
-
+        mod_dir, mod_name = os.path.split(self._cocotb_module_location)
+        
         if "PYTHONPATH" not in os.environ:
             environ["PYTHONPATH"] = mod_dir
         else:
@@ -62,9 +62,9 @@ class CocoTestRun(TestRun):
         environ["COCOTB_RESOLVE_X"] = "ZEROS"
 
         if self._simulator_if.name == "ghdl":
-            environ["TOPLEVEL"] = mod.top_level.lower()
+            environ["TOPLEVEL"] = self._top_level.lower()
         else:
-            environ["TOPLEVEL"] = mod.top_level
+            environ["TOPLEVEL"] = self._top_level
 
         return environ
 
