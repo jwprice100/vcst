@@ -127,11 +127,10 @@ def format_generic(value):
          value_str = value_str + format_generic(item) + ","         
       #Remove the comma at the end
       value_str = value_str[0:len(value_str)-1] + ")"
-      print(value_str)
       return value_str
    else:
        value_str = str(value)
-       if " " in value_str:
+       if " " in value_str or type(value) is str:
            return f'"{value_str}"'
        return value_str    
 
