@@ -5,8 +5,10 @@ import types
 from pathlib import Path
 from collections import OrderedDict
 from importlib.machinery import SourceFileLoader
+from dataclasses import dataclass
 
 from cocotb.decorators import test as Test
+from ..decorators import test as vcst_Test
 
 from vunit.test.bench import TestBench, TestConfigurationVisitor, FileLocation
 from vunit.configuration import ConfigurationVisitor, Configuration, DEFAULT_NAME
@@ -51,7 +53,11 @@ class CocoTestBench(TestBench):
         for obj_name in dir(cocotb_module):
             obj = getattr(cocotb_module, obj_name)
             if isinstance(obj, Test):
-                tests.append(CocoTest(obj.__name__, self.design_unit, cocotb_module, cocotb_module_location))
+                coco_test = CocoTest(obj.__name__, self.design_unit, cocotb_module, cocotb_module_location)
+                if isinstance(obj, vcst_Test):
+                    for attr in obj.attributes:
+                        coco_test.add_attribute(CocoTestAttribute(attr, None))
+                tests.append(coco_test)
 
         default_config = Configuration(DEFAULT_NAME, self.design_unit)                  
         self._test_cases = [
@@ -143,4 +149,8 @@ class CocoTestConfigurationVisitor(TestConfigurationVisitor):
             )        
 
 
+@dataclass
+class CocoTestAttribute:
+    name: str
+    value: str
 
