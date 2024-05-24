@@ -155,7 +155,3 @@ vunit.sim_if.rivierapro.format_generic = format_generic
 RivieraProInterface._run_persistent = rivierapro_run_persistent
 RivieraProInterface._run_batch_file = rivierapro_run_batch_file
 RivieraProInterface.simulate = rivierapro_simulate    
-vunit.sim_if.modelsim.format_generic = format_generic
-ModelSimInterface._run_persistent = rivierapro_run_persistent
-ModelSimInterface._run_batch_file = rivierapro_run_batch_file
-ModelSimInterface.simulate = rivierapro_simulate
