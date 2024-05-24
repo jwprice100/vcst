@@ -9,7 +9,6 @@ ui = VCST.from_argv()
 lib = ui.add_library("lib")
 lib.add_source_files(root / "hdl" / "*.vhd*", vhdl_standard="2008")
 lib.add_compile_option("rivierapro.vcom_flags", ["-dbg","-relax"])   
-lib.add_compile_option("modelseim.vcom_flags", ["-voptargs=+acc","-relax"])   
 #Configure the counter testbench
 tb_counter = lib.test_bench("tb_counter")
 tb_counter.add_config(name="width_8_wrap_200", generics={"COUNTER_WIDTH": 8, "COUNTER_WRAP": 200})
