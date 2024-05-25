@@ -20,6 +20,7 @@ There are a few disadvantages compared to use either VUnit or Cocotb by themselv
 3. There isn't an official flow for the Driver Co-simulation. However I suspect the VUnit pre-simulation hooks could be used to build the necessary software prior to test execution.
 
 ## Installation Instructions
+0. Be sure that Python-devel support is installed in your linux package manager eg: dnf install python3.11-devel on RHEL
 1. Create a virtual environment
     ```bash
     python3 -m venv path_to_virtual_environment

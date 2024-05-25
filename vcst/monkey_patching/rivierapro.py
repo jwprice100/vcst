@@ -3,6 +3,7 @@ from pathlib import Path
 import vunit
 from vunit.sim_if.vsim_simulator_mixin import fix_path
 from vunit.sim_if.rivierapro import RivieraProInterface
+from vunit.sim_if.modelsim import ModelSimInterface
 from vunit.persistent_tcl_shell import PersistentTclShell
 from vunit.ostools import write_file, Process
 

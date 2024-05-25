@@ -78,6 +78,19 @@ class CocoTestRun(TestRun):
             ghdl_cocotb_lib = get_cocotb_libs_path() / 'libcocotbvpi_ghdl.so'        
             append_sim_options(self._config, "ghdl.sim_flags", [f"--vpi={ghdl_cocotb_lib}"])
 
+        if self._simulator_if.name == "modelsim":
+            modelsim_cocotb_vhpi_lib = get_cocotb_libs_path() / 'libcocotbvhpi_modelsim.so'        
+            modelsim_cocotb_vpi_lib = get_cocotb_libs_path() / 'libcocotbvpi_modelsim.so'
+            modelsim_cocotb_fli_lib = get_cocotb_libs_path() / 'libcocotbfli_modelsim.so'       
+            append_sim_options(self._config, "modelsim.vsim_flags", [f"-foreign \"cocotb_init {modelsim_cocotb_fli_lib}\""])
+            
+            #if self._vhdl:
+            #    append_sim_options(self._config, "modelsim.vsim_flags", [f"-vhpi {modelsim_cocotb_vhpi_lib}"])
+            #    #environ["GPI_EXTRA"] = get_cocotb_libs_path() / "cocotbvpi_aldec:cocotbvpi_entry_point"                 
+            #else:
+            #    append_sim_options(self._config, "modelsim.vsim_flags", [f"-pli {modelsim_cocotb_vpi_lib}"])
+            #    #environ["GPI_EXTRA"] = get_cocotb_libs_path() / "cocotbvhpi_aldec:cocotbvhpi_entry_point"
+
         if self._simulator_if.name == "rivierapro":
             riviera_cocotb_vhpi_lib = get_cocotb_libs_path() / 'libcocotbvhpi_aldec.so'        
             riviera_cocotb_vpi_lib = get_cocotb_libs_path() / 'libcocotbvpi_aldec.so'        
