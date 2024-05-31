@@ -83,7 +83,7 @@ class CocoTestRun(TestRun):
             modelsim_cocotb_vpi_lib = get_cocotb_libs_path() / 'libcocotbvpi_modelsim.so'
             modelsim_cocotb_fli_lib = get_cocotb_libs_path() / 'libcocotbfli_modelsim.so'       
             append_sim_options(self._config, "modelsim.vsim_flags", [f"-foreign \"cocotb_init {modelsim_cocotb_fli_lib}\""])
-            
+            append_sim_options(self._config, "modelsim.vsim_flags.gui", [f"-foreign \"cocotb_init {modelsim_cocotb_fli_lib}\""])
             #if self._vhdl:
             #    append_sim_options(self._config, "modelsim.vsim_flags", [f"-vhpi {modelsim_cocotb_vhpi_lib}"])
             #    #environ["GPI_EXTRA"] = get_cocotb_libs_path() / "cocotbvpi_aldec:cocotbvpi_entry_point"                 
