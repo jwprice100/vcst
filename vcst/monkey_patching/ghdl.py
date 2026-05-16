@@ -1,8 +1,9 @@
 from pathlib import Path
 import os
+from os import remove
 import shlex
 import subprocess
-from sys import stdout 
+from sys import stdout
 from vunit.sim_if.ghdl import GHDLInterface
 from vunit.ostools import write_file, Process
 
@@ -21,15 +22,15 @@ def simulate(self, output_path, test_suite_name, config, elaborate_only, env=Non
 
     ghdl_e = elaborate_only and config.sim_options.get("ghdl.elab_e", False)
 
-    if self._gtkwave_fmt is not None:
-        data_file_name = str(Path(script_path) / ("wave.%s" % self._gtkwave_fmt))
+    if self._viewer_fmt is not None:
+        data_file_name = str(Path(script_path) / ("wave.%s" % self._viewer_fmt))
         if Path(data_file_name).exists():
             remove(data_file_name)
     else:
         data_file_name = None
 
     cmd = self._get_command(
-        config, script_path, elaborate_only, ghdl_e, data_file_name
+        config, script_path, elaborate_only, ghdl_e, test_suite_name, data_file_name
     )
 
     status = True
@@ -46,9 +47,12 @@ def simulate(self, output_path, test_suite_name, config, elaborate_only, env=Non
         status = False
 
     if self._gui and not elaborate_only:
-        cmd = ["gtkwave"] + shlex.split(self._gtkwave_args) + [data_file_name]
+        cmd = [self._get_viewer(config)] + shlex.split(self._viewer_args) + [data_file_name]
 
-        init_file = config.sim_options.get(self.name + ".gtkwave_script.gui", None)
+        init_file = config.sim_options.get(
+            self.name + ".viewer_script.gui",
+            config.sim_options.get(self.name + ".gtkwave_script.gui", None),
+        )
         if init_file is not None:
             cmd += ["--script", "{}".format(str(Path(init_file).resolve()))]
 

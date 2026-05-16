@@ -92,10 +92,15 @@ def rivierapro_simulate(self, output_path, test_suite_name, config, elaborate_on
     gui_file_name = script_path / "gui.do"
     batch_file_name = script_path / "batch.do"
 
+    optimize_design = self._optimize_design(config)
+    if optimize_design:
+        if not self._optimize(config, script_path):
+            return False
+
     write_file(
         str(common_file_name),
         self._create_common_script(
-            test_suite_name, config, script_path, output_path
+            test_suite_name, config, script_path, output_path, optimize_design=optimize_design
         ),
     )
     write_file(

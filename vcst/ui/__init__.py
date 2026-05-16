@@ -1,9 +1,11 @@
+import sys
+import pickle
 from typing import Optional, Set, Union
 from pathlib import Path
 from fnmatch import fnmatch
 from types import ModuleType
 
-from vunit import VUnit 
+from vunit import VUnit
 from vunit.color_printer import COLOR_PRINTER, NO_COLOR_PRINTER
 from vunit.database import PickledDataBase, DataBase
 from vunit.sim_if.factory import SIMULATOR_FACTORY
@@ -33,22 +35,10 @@ class VCST(VUnit):
         else:
             self._printer = COLOR_PRINTER
 
-        def test_filter(name, attribute_names):
-            keep = any(fnmatch(name, pattern) for pattern in args.test_patterns)
-
-            if args.with_attributes is not None:
-                keep = keep and set(args.with_attributes).issubset(attribute_names)
-
-            if args.without_attributes is not None:
-                keep = keep and set(args.without_attributes).isdisjoint(attribute_names)
-            return keep
-
-        self._test_filter = test_filter
+        self._test_filter = self._make_test_filter(args, args.test_patterns)
         self._vhdl_standard: VHDLStandard = select_vhdl_standard(vhdl_standard)
 
-        self._external_preprocessors = []  # type: ignore
-        self._location_preprocessor = None
-        self._check_preprocessor = None
+        self._preprocessors = []  # type: ignore
 
         self._simulator_class = SIMULATOR_FACTORY.select_simulator()
 
@@ -64,17 +54,26 @@ class VCST(VUnit):
 
         self._create_output_path(args.clean)
 
-        database = self._create_database()
+        self._database_version = (11, sys.version)
+        self._pickled_database_version = (self._database_version[0], pickle.HIGHEST_PROTOCOL)
+        self._database = self._create_database()
         self._project = VCSTProject(
-            database=database,
+            database=self._database,
             depend_on_package_body=simulator_class.package_users_depend_on_bodies,
         )
 
-        self._test_bench_list = TestBenchList(database=database)
+        self._test_bench_list = TestBenchList(database=self._database)
 
         self._builtins = Builtins(self, self._vhdl_standard, simulator_class)
+
+        self._dependency_graph = None
+        self._include_in_test_pattern = None
+        self._exclude_from_test_pattern = None
+        self._latest_dependency_updates = None
+        self._test_history = None
+
         if compile_builtins:
-            self.add_builtins()
+            self.add_vhdl_builtins()
     
     def library(self, library_name: str):
         """

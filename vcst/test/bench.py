@@ -19,8 +19,7 @@ from ..utils.mod_utils import import_mod
 class CocoTestBench(TestBench):
     def __init__(self, design_unit, cocotb_module, cocotb_module_location, database=None):
         
-        ConfigurationVisitor.__init__(self)
-        self.design_unit = design_unit
+        ConfigurationVisitor.__init__(self, design_unit)
         self._database = database
 
         self._individual_tests = True
@@ -67,7 +66,7 @@ class CocoTestBench(TestBench):
 
         self._configs = OrderedDict({default_config.name: default_config})
 
-    def create_tests(self, simulator_if, elaborate_only, test_list=None):
+    def create_tests(self, simulator_if, seed, elaborate_only, test_list=None):
         """
         Create all test cases from this test bench
         """
@@ -78,7 +77,7 @@ class CocoTestBench(TestBench):
             test_list = TestList()
 
         for test_case in self._test_cases:
-            test_case.create_tests(simulator_if, elaborate_only, test_list)
+            test_case.create_tests(simulator_if, seed, elaborate_only, test_list)
 
         return test_list
 
@@ -137,13 +136,14 @@ class CocoTestConfigurationVisitor(TestConfigurationVisitor):
     """
     Override VUnit's TestConfigurationVisitor to create CocoIndependentSimTestCase objects
     """
-    def create_tests(self, simulator_if, elaborate_only, test_list=None):
+    def create_tests(self, simulator_if, seed, elaborate_only, test_list=None):
         for config in self._get_configurations_to_run():
             test_list.add_test(
                 IndependentCocoSimTestCase(
                     test=self._test,
                     config=config,
                     simulator_if=simulator_if,
+                    seed=seed,
                     elaborate_only=elaborate_only,
                 )
             )        
