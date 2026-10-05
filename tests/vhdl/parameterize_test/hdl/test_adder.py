@@ -2,24 +2,22 @@ import cocotb
 from vcst.utils import parameterize_test, set_top_level
 from cocotb.triggers import RisingEdge, Timer
 from cocotb.clock import Clock
-from cocotb.result import TestSuccess, TestFailure
 
 from vcst.utils import set_top_level
 
-@cocotb.coroutine
 async def sum_values(dut, values):
     clock = Clock(dut.clock, 4, "ns")
-    cocotb.fork(clock.start())
+    cocotb.start_soon(clock.start())
     
     await RisingEdge(dut.clock)
     for a,b in values:
-        dut.input_a <= a
-        dut.input_b <= b
+        dut.input_a.value = a
+        dut.input_b.value = b
         await RisingEdge(dut.clock)
         await RisingEdge(dut.clock)
         expected_result = a+b    
-        if dut.sum.value.get_value_signed() != expected_result:
-            raise TestFailure(f"Incorrect sum. Expected {expected_result}. Actual: {int(dut.sum.value)}")
+        actual_result = dut.sum.value.to_signed()
+        assert actual_result == expected_result, f"Incorrect sum. Expected {expected_result}. Actual: {actual_result}"
 
 
 #Show the alternate to test factory.

@@ -6,6 +6,7 @@ import os
 
 root = Path(os.path.abspath(Path(__file__).parent))
 ui = VCST.from_argv()
+ui.add_vhdl_builtins()
 lib = ui.add_library("lib")
 lib.add_source_files(root / "hdl" / "*.vhd*", vhdl_standard="2008")
 lib.add_compile_option("rivierapro.vcom_flags", ["-dbg","-relax"])   

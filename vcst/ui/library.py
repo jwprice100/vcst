@@ -11,7 +11,9 @@ class VCSTLibrary(Library):
     def add_cocotb_testbench(self, design_unit, cocotb_module_locations, cocotb_module=None):
         """
         """
-        test_bench = CocoTestBench(design_unit, cocotb_module_locations, cocotb_module, database=None)
+        test_bench = CocoTestBench(
+            design_unit, cocotb_module_locations, cocotb_module, database=self._test_bench_list._database
+        )
         self._test_bench_list._add_test_bench(test_bench)
         return self.test_bench(design_unit.name)
 

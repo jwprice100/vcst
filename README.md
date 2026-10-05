@@ -11,7 +11,16 @@ VCST seeks to combine the best of both worlds. This includes inheriting VUnit's 
 The goal of VCST is to provide a proof of example concept of VUnit and Cocotb working together without a single source change to other project. This will provide a couple of benefits. First, it is an interim solutions for VUnit and Cocotb users. Second, it will shed some light on what works could be done to make cooctb and vunit even more modular. Third, it has given me an opportunity to dig more into how these tools work so I can contribute more to these amazing tools.
 
 ## Simulator Support
-At the moment, the only simulators supported are GHDL and Riviera-Pro. GHDL has very limited support for VPI and therefore Cocotb can't fully utilize it. I will make attempts for supporting ModelSim/Questa as well. I invite anyone who wants to help me broaden simulator support to contribute. I also intend to add support for Icarus as well. This is bigger effort as VUnit does not support Icarus (as it does not support enough of System Verilog). VUnit's SystemVerilog testbenches would not work, but cocotb testbenches could work. 
+VCST requires VUnit 5 (`vunit-hdl>=5.0.0.dev13`) and cocotb 2.1 or newer (`cocotb>=2.1`). The supported simulators, selected with VUnit's `VUNIT_SIMULATOR` environment variable, are:
+
+| Simulator | VUnit name | cocotb interface |
+|-----------|------------|------------------|
+| NVC | `nvc` | VHPI (`--load`) |
+| ModelSim / Questa | `modelsim` | FLI for VHDL (`-foreign`), VPI for Verilog (`-pli`) |
+| Riviera-Pro | `rivierapro` | VHPI for VHDL, VPI for Verilog |
+| GHDL | `ghdl` | VPI (`--vpi`) |
+
+GHDL has very limited support for VPI and therefore cocotb can't fully utilize it. ModelSim/Questa and Riviera-Pro always run each simulation in its own `vsim` process (as with `--unique-sim`), since cocotb's embedded Python and environment can't be shared between tests. I invite anyone who wants to help me broaden simulator support to contribute. I also intend to add support for Icarus as well. This is bigger effort as VUnit does not support Icarus (as it does not support enough of System Verilog). VUnit's SystemVerilog testbenches would not work, but cocotb testbenches could work.
 
 ## Disadvantages
 There are a few disadvantages compared to use either VUnit or Cocotb by themselves. These include:
@@ -43,6 +52,7 @@ When creating HDL testbenches, the normal flow is the same. However instead of i
 ```python
 from vcst import VCST
 ui = VCST.from_argv()
+ui.add_vhdl_builtins()  # only needed for VUnit VHDL testbenches, as with VUnit 5
 ```
 
 Now to import a cocotb test module there are two steps. The cocotb module itself must call the set_top_level function defined in VCST. The set_top_level function takes in three arguments:
@@ -53,29 +63,24 @@ Now to import a cocotb test module there are two steps. The cocotb module itself
 ```python
 import cocotb
 from vcst.utils import set_top_level
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import RisingEdge
 from cocotb.clock import Clock
-from cocotb.result import TestSuccess, TestFailure
 
 @cocotb.test()
 async def reset_test(dut):
-    clock = Clock(dut.clock, 4, units="ns")
-    cocotb.fork((clock.start()))
+    clock = Clock(dut.clock, 4, unit="ns")
+    cocotb.start_soon(clock.start())
 
     await RisingEdge(dut.clock)
-    dut.reset <= 1
-    dut.enable <= 0
+    dut.reset.value = 1
+    dut.enable.value = 0
     await RisingEdge(dut.clock)
-    dut.reset <= 0
+    dut.reset.value = 0
     await RisingEdge(dut.clock)
 
-    if dut.counter_value.value != 0:
-       raise TestFailure(f"Counter value did not reset to 0.")
-
-    raise TestSuccess("Test passed.")
+    assert dut.counter_value.value == 0, "Counter value did not reset to 0."
 
 set_top_level("counter", "entity", "lib") #This is different than a normal cocotb testbench
-
 ```
 
 Once that is defined, the cocotb module can be added via the ui object.
@@ -86,5 +91,12 @@ adder_tb.add_config(name="data_width_16", generics={"DATA_WIDTH": 16})
 ```
 Notice how the adder_tb can have configurations with different generics added to it, much like a normal testbench.
 
-Now you're all set. Run your run.py script like you would any vuint run script.
+Now you're all set. Run your run.py script like you would any VUnit run script, for example `VUNIT_SIMULATOR=nvc python run.py`.
+
+## Running the tests
+```bash
+pip install -e . pytest
+pytest
+```
+The example run scripts under `tests/vhdl` are run with each simulator that is found on the `PATH` (NVC and ModelSim/Questa).
 
